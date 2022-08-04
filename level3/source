@@ -1,0 +1,15 @@
+int m
+
+v:
+	char str[520]
+
+	fgets(str, 512, stdin)
+	printf(str)
+	if (m == 0x40) {
+		fwrite("Wait what?!\n",1,0xc,stdout);
+		system("/bin/sh");
+	}
+
+main:
+	v();
+	return;

