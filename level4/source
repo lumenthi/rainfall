@@ -1,0 +1,17 @@
+int m;
+
+p(param):
+	printf(param)
+	return
+
+n:
+	char str[520];
+	fgets(str, 512, 1)
+	p(str)
+	if (m == 0x1025544)
+		system("/bin/cat /home/user/level5/.pass");
+	return
+
+main:
+	n()
+	return;

