@@ -1,0 +1,11 @@
+# https://reverseengineering.stackexchange.com/questions/1992/what-is-plt-got
+
+PLT stands for Procedure Linkage Table which is, put simply, used to call external procedures/functions whose address isn't known in the time of linking, and is left to be resolved by the dynamic linker at run time.
+
+GOT stands for Global Offsets Table and is similarly used to resolve addresses. Both PLT and GOT and other relocation information is explained in greater length in this article.
+
+# https://infosecwriteups.com/got-overwrite-bb9ff5414628
+
+When a “printf()” inside the program is called it checks the PLT table first
+
+While checking the PLT table of the “printf()” function, it seeks for the GOT address of “printf()” to run the function so that “printf()” can be called from library directly

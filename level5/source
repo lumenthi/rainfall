@@ -1,0 +1,14 @@
+o:
+	system(/bin/sh);
+	exit(1)
+
+n:
+	char str[520]
+
+	fgets(str, 512, 1)
+	printf(str)
+	exit()
+
+main:
+	n()
+	return

