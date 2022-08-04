@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/455544/how-to-load-program-reading-stdin-and-taking-parameters-in-gdb
+
+https://stackoverflow.com/questions/14086738/put-file-contents-on-stdin-without-sending-eof

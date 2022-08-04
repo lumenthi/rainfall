@@ -1,0 +1,11 @@
+main:
+	cmp argv[1], 0x1a7
+	if equal:
+		string = strdup(/bin/sh)
+		g = getegid()
+		u = geteuid()
+		setresgid(g, g, g)
+		setresuid(u, u, u)
+		exec(string)
+	else:
+		write(no)

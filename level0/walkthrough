@@ -1,0 +1,12 @@
+gdb level0
+disas main:
+   0x08048ed9 <+25>:	cmp    $0x1a7,%eax # Cmp first arg with 0x1a7
+   0x08048ede <+30>:	jne    0x8048f58 <main+152> # Skip the execv part
+
+We must not take this jump so our first args has to be 0x01a7
+
+level0@SnowCrash:~$ ./level0 $(printf "%d\n" 0x01a7)
+$ whoami
+level1
+$ cat /home/user/level1/.pass
+1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a

