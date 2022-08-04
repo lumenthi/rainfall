@@ -1,0 +1,18 @@
+p:
+	int int1;
+	char char1[76];
+
+	fflush(1)
+	gets(char1)
+
+	if ((int1 & 0xb0000000) == 0xb0000000) {
+		printf("(%p)\n", int1);
+		exit(1);
+	}
+	puts(char1)
+	strdup(char1)
+	return
+
+main:
+	p();
+	return
