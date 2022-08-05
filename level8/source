@@ -1,0 +1,29 @@
+var auth
+var service
+
+main:
+	char things[2]
+	char stack[125]
+
+	while(1):
+		print(auth, service)
+		input = fgets(stdin)
+
+		if (!input)
+			return 0;
+
+		if (input == "reset")
+			free(auth)
+
+		if (input == "services")
+			services = strdup(stack)
+
+		if (input == "auth ")
+			auth = malloc(4)
+			strcpy(auth, things)
+
+		if (input == "login")
+			if (*(auth+32) == 0)
+				write("Password:\n")
+			else
+				system(/bin/sh)
