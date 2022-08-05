@@ -1,0 +1,19 @@
+n():
+	system("/bin/cat /home/user/level7/.pass");
+	return;
+
+m():
+	puts("nope)
+	return
+
+main(argc, argv):
+	char *dest;
+	func *function
+
+	dest = malloc(64);
+	function = malloc(4);
+	function = m;
+
+	strcpy(dest, argv[1]);
+	m();
+	return;

