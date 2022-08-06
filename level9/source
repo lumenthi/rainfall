@@ -2,14 +2,15 @@ class N {
 	private:
 		int attribute;
 		char *str;
+
 	public:
 		N(var value) {
 			attribute = value;
 		}
-		int operator- (param) {
+		int operator+ (param) {
 			return param+0x68+this+0x68
 		}
-		int operator+ (param) {
+		int operator- (param) {
 			return param+0x68+this+0x68
 		}
 		void setAnnotation(char *str) {

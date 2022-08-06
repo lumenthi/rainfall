@@ -1,0 +1,33 @@
+p(char *param, param2):
+	char *str
+	char ret[4104]
+
+	puts(param2)
+	read(0, ret, 4096)
+	str = strchr(ret, 0x0A) # 10 | Enter
+	*str = '\0';
+	strncpy(param, ret, 20)
+	return
+
+pp(char *param):
+	char str1[20]
+	char str2[20]
+
+	p(str1, " - ");
+	p(str2, " - ");
+	strcpy(param, str1)
+
+	while (*param++);
+
+	*param = ' ';
+	*(param+1) = 0x00;
+
+	strcat(param, str2)
+	return
+
+main:
+	char str[54]
+
+	pp(str)
+	puts(str)
+	return 0

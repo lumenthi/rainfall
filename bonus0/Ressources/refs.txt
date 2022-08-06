@@ -1,0 +1,7 @@
+https://security.stackexchange.com/questions/144736/shellcode-not-executing-properly
+
+
+https://defuse.ca/online-x86-assembler.htm#disassembly2
+
+
+https://www.exploit-db.com/exploits/44321
