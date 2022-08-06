@@ -1,0 +1,29 @@
+class N {
+	private:
+		int attribute;
+		char *str;
+	public:
+		N(var value) {
+			attribute = value;
+		}
+		int operator- (param) {
+			return param+0x68+this+0x68
+		}
+		int operator+ (param) {
+			return param+0x68+this+0x68
+		}
+		void setAnnotation(char *str) {
+			memcpy(this->str ,str, len(str))
+			return;
+		}
+};
+
+main:
+	if (argc < 2)
+		exit(1)
+
+	N classVar(108);
+	N classVar2(classVar, 6);
+
+	classVar.setAnnotation(argv[1]);
+	classVar2.operator+();
