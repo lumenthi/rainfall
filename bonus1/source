@@ -1,0 +1,12 @@
+main(int argc, char **argv):
+	int ret
+	char buf[40]
+
+	ret = atoi(argv[1])
+	if (ret < 10) {
+		memcpy(buf, argv[2], ret*4)
+		if (ret == 0x574f4c46) # 1464814662
+			execl("/bin/sh", "sh", 0);
+		return 0;
+	}
+	return 1;

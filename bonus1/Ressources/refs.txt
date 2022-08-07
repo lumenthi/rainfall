@@ -1,0 +1,6 @@
+https://www.geeksforgeeks.org/multiply-number-4-using-bitwise-operator/
+
+https://man7.org/linux/man-pages/man3/memcpy.3.html
+
+https://www.geeksforgeeks.org/int_max-int_min-cc-applications/#:~:text=Value%20of%20INT_MAX%20is%20%2B2147483647,Value%20of%20INT_MIN%20is%20%2D2147483648.
+Value of INT_MAX is +2147483647. Value of INT_MIN is -2147483648
