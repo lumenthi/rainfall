@@ -1,0 +1,41 @@
+# I patched the binary so i can LTRACE the execution as always it helps me with reversing
+
+➜  rainfall git:(master) ✗ ltrace ./b3p salut
+__libc_start_main(0x80484f4, 2, 0xff8be414, 0x8048620 <unfinished ...>
+fopen("/tmp/pass", "r")                                                        = 0x94ba1a0
+fread(0xff8be2e8, 1, 66, 0x94ba1a0)                                            = 6
+atoi(0xff8c0107, 1, 66, 0x94ba1a0)                                             = 0
+fread(0xff8be32a, 1, 65, 0x94ba1a0)                                            = 0
+fclose(0x94ba1a0)                                                              = 0
+strcmp("", "salut")                                                            = -1
+puts(""
+)                                                                              = 1
++++ exited (status 0) +++
+
+(gdb) disas main
+0x080485da <+230>:	call   0x80483b0 <strcmp@plt> <- strcmp("", "salut")
+0x080485df <+235>:	test   %eax,%eax <- check if ret == 0
+0x080485e1 <+237>:	jne    0x8048601 <main+269> <- must not take this
+0x080485e3 <+239>:	movl   $0x0,0x8(%esp)
+0x080485eb <+247>:	movl   $0x8048707,0x4(%esp)
+0x080485f3 <+255>:	movl   $0x804870a,(%esp)
+0x080485fa <+262>:	call   0x8048420 <execl@plt> <- spawns a shell
+
+(gdb) x/s 0x804870a
+0x804870a:	 "/bin/sh"
+
+# Oh well, if we pass null to strcmp it spawns a shell ???
+# From LTRACE, it looks like this is our first arg :^)
+
+bonus3@SnowCrash:~$ ./bonus3 ""
+$ whoami
+end
+$ cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
+
+bonus3@SnowCrash:~$ su end
+Password:
+end@SnowCrash:~$ ls
+end
+end@SnowCrash:~$ cat end
+Congratulations graduate!
