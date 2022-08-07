@@ -3,7 +3,7 @@ n():
 	return;
 
 m():
-	puts("nope)
+	puts("nope")
 	return
 
 main(argc, argv):
